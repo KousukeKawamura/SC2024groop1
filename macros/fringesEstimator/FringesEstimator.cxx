@@ -13,7 +13,7 @@
 
 void FringesEstimator::obtainFilePath()
 {
-  std::string directory = "../data";
+  std::string directory = "../../data";
   std::regex file_pattern(m_fileNumberStr + "_\\d{3}\\.root$");
 
   for (const auto &entry : std::filesystem::directory_iterator(directory)) {
