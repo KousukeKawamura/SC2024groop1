@@ -1,4 +1,6 @@
 *~
 *.o
 *.so
-:
+*.dat
+macros/resultOverView/*.pdf
+

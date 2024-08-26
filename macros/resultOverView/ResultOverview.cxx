@@ -12,7 +12,7 @@
 
 void obtainFilePath(std::string dataName, std::vector<std::string> *filePathVec)
 {
-  std::string directory = "../../temp";
+  std::string directory = "../../data";
   std::regex file_pattern(dataName + "_\\d{3}\\.root$");
 
   for (const auto &entry : std::filesystem::directory_iterator(directory)) {
@@ -24,7 +24,7 @@ void obtainFilePath(std::string dataName, std::vector<std::string> *filePathVec)
   std::sort(filePathVec->begin(), filePathVec->end());
 }
 
-void readHistAndDraw(std::string filePath, std::string channel, int lineColor, bool isOverlap)
+void readHistAndDraw(std::string filePath, std::string channel, int lineColor, bool isOverlap, double xMin, double xMax)
 {
   TFile *file = TFile::Open(filePath.c_str());
   if (!file || file->IsZombie()) {
@@ -64,7 +64,7 @@ void readHistAndDraw(std::string filePath, std::string channel, int lineColor, b
   */
 
   // set x axis range [700, 1100]
-  hist->GetXaxis()->SetRangeUser(700., 1000.);
+  hist->GetXaxis()->SetRangeUser(xMin, xMax);
 
   hist->SetLineColor(lineColor);
   hist->SetTitle(filePath.c_str());
@@ -79,7 +79,7 @@ void readHistAndDraw(std::string filePath, std::string channel, int lineColor, b
 
 int main(int argc, char *argv[]) {
 
-  if (!(argc == 3 || argc == 4)) {
+  if (!(argc == 5 || argc == 6)) {
     std::cerr << "Incorrect arguments." << std::endl;
     return 1;
   }
@@ -90,21 +90,26 @@ int main(int argc, char *argv[]) {
   std::string dataName;
   std::string dataName2;
   std::string channel;
+  double xMin, xMax;
 
-  if (argc == 3) {
+  if (argc == 5) {
     dataName = argv[1];
     channel = argv[2];
-  } else if (argc ==4) {
+    xMin = std::stod(argv[3]);
+    xMax = std::stod(argv[4]);
+  } else if (argc ==6) {
     dataName = argv[1];
     dataName2 = argv[2];
     channel = argv[3];
+    xMin = std::stod(argv[4]);
+    xMax = std::stod(argv[5]);
   }
 
   obtainFilePath(dataName, &filePathVec);
-  if (argc ==4) obtainFilePath(dataName2, &filePathVec2);
+  if (argc ==6) obtainFilePath(dataName2, &filePathVec2);
 
   // if the number of files to load two sets of data are different exit.
-  if (argc == 4) {
+  if (argc == 6) {
     if (!(filePathVec.size() == filePathVec2.size())) {
       std::cerr << "the number of files to load two sets of data are different!" << std::endl;
       return 2;
@@ -124,10 +129,10 @@ int main(int argc, char *argv[]) {
     std::string filePath = filePathVec.at(i);
 
     c1->cd(i%8 + 1);
-    readHistAndDraw(filePath, channel, 632, false); // 632 is kRed
+    readHistAndDraw(filePath, channel, 632, false, xMin, xMax); // 632 is kRed
     if (argc == 4) {
       std::string filePath2 = filePathVec2.at(i);
-      readHistAndDraw(filePath2, channel, 600, true); // 600 is kBlue
+      readHistAndDraw(filePath2, channel, 600, true, xMin, xMax); // 600 is kBlue
     }
 
     if (i == 7) c1->SaveAs(Form("%s.ADC_dis_overview.pdf(", dataName.c_str()));
